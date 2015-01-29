@@ -1,6 +1,6 @@
 #Production Server
 
-Built by [Emmett Raymond](emmettaraymond@gmail.com) for Cedar Fort, Inc. 
+Built by [Emmett Raymond](mailto:emmettaraymond@gmail.com) for Cedar Fort, Inc. 
 
 © 2014, Cedar Fort, Inc.
 
