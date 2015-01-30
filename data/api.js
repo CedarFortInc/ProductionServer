@@ -24,6 +24,16 @@ var getTitles = function(err, callback){
 };
 
 /*
+ * Takes an isbn and returns all data on the title.
+ */
+var getTitle = function(err, isbn, callback){
+	db.query("MATCH (isbn:ISBN {isbn:'" + isbn + "'})<-[:has_GTIN]-(title), (title)-[]->(data)" +
+		"RETURN isbn,labels(isbn),title,data,labels(data)", {}, function(err, result){
+		if (callback != null) callback(err, result);
+	});
+};
+
+/*
  * Takes a title object and updates the server. Passes true to the callback for success.
  * titleObject = {
  * 	title: 'string', 

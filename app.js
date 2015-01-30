@@ -8,8 +8,9 @@ var router = require('./routes/index');
 var scripts = require('./routes/javascripts');
 var api = require('./routes/api');
 var css = require('./routes/css');
-var book = require('./routes/book');
+//var books = require('./routes/books');
 var tpl = require('./routes/tpl');
+var compression = require('compression');
 
 var app = express();
 
@@ -18,7 +19,6 @@ app.set('views', path.join(__dirname, 'views'));
 app.engine('html', require('ejs').renderFile);
 app.set('view engine', 'html');
 
-// uncomment after placing your favicon in /public
 app.use(favicon(__dirname + '/public/favicon.ico'));
 app.use(logger('dev'));
 app.use(bodyParser.json());
@@ -26,11 +26,12 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(require('stylus').middleware(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(compression());
 
 app.use('/js', scripts);
 app.use('/api', api);
 app.use('/css', css);
-app.use('/book', book);
+//app.use('/books', books);
 app.use('/tpl', tpl)
 app.use('/', router);
 

@@ -10,4 +10,15 @@ router.get('/books', function(req, res){
 	});
 });
 
+router.post('/books', function(req, res){
+	console.log(req);
+	res.status(200).send(OK)
+})
+
+router.get('/books/:id', function(req, res){
+	db.getTitle(null, req.params.id, function(err, result){
+		res.send(result);
+	});
+});
+
 module.exports = router;

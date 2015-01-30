@@ -13,6 +13,9 @@
 				<li ng-repeat="(key, value) in title.isbns">
 					{{key[0].toUpperCase() + key.substr(1)}}: 
 					<input type="text" ng-model="title.isbns[key]">
+					<button ng-click="remove(key, title.isbns)">
+						Remove {{key}} ISBN
+					</button>
 				</li>
 		</ul>
 	</form>

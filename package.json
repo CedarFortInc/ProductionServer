@@ -3,9 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "prestart": "sudo stylus -c ./public/stylesheets",
+    "prestart": "sudo ./bin/prestart",
     "start": "sudo node ./bin/www",
-    "stop": "sudo kill $(sudo lsof -t -i:80)" 
+    "stop": "./bin/stop" 
   },
   "dependencies": {
     "angular": "^1.3.9",

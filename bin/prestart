@@ -1,0 +1,9 @@
+#!/bin/bash
+NEOSTAT="$(data/neo4j-community-2.1.6/bin/neo4j status)"
+TARGET="Neo4j Server is not running"
+
+if [ "$NEOSTAT" = "$TARGET" ]; then
+	data/neo4j-community-2.1.6/bin/neo4j start
+fi
+
+stylus -c ./public/stylesheets

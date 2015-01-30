@@ -6,9 +6,11 @@
                 <dl dir-paginate="book in books | filter:search | itemsPerPage: 1">
                         <dt class="title">Title: </dt>
                         <dd class="title">
-                                {{book.article != null ? (book.article + " ") : ''}}
-                                {{book.title}}
-                                {{book.subtitle != null ? (": " + book.subtitle) : ''}}
+				<a ng-href="/books/{{oneProp(book.isbns)}}">
+                        	        {{book.article != null ? (book.article + " ") : ''}}
+                        	        {{book.title}}
+                        	        {{book.subtitle != null ? (": " + book.subtitle) : ''}}
+				</a>
                         </dd>
                         <br />
                         <dt ng-repeat-start="(name,value) in book.isbns">{{name}}:</dt>

@@ -1,3 +1,4 @@
 /data/neo4j-community*
 /node_modules/
 *.swp
+*.log

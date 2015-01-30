@@ -1,0 +1,5 @@
+#!/bin/bash
+
+sudo kill `sudo lsof -t -i:80`
+
+sudo data/neo4j-community-2.1.6/bin/neo4j stop
