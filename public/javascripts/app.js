@@ -3,16 +3,20 @@ var BookCatalog = angular.module('BookCatalog', ['ngRoute',
 						'angularUtils.directives.dirPagination'])
 	.config(function($routeProvider, $locationProvider){
 		$routeProvider
-			.when('/catalog', {
+			.when('/books', {
 				templateUrl: '/tpl/allBooks.html',
 				controller: 'mainListing' 
 			})
-			.when('/addBook', {
+			.when('/new', {
 				templateUrl: '/tpl/addBook.html',
 				controller: 'addBook'
 			})
+			.when('/books/:id', {
+				templateUrl: '/tpl/bookDetail.html',
+				controller: 'bookDetail'
+			})
 			.otherwise({
-				redirectTo: '/catalog'
+				redirectTo: '/books'
 			});
 		$locationProvider.html5Mode(true);
 });

@@ -23,15 +23,65 @@ var getTitles = function(err, callback){
 	});
 };
 
+
+/*
+ * Updates a title object at the requested isbn.
+ */
+var putTitle = function(err, isbn, title, callback){
+	
+}
+	
+
 /*
  * Takes an isbn and returns all data on the title.
  */
 var getTitle = function(err, isbn, callback){
 	db.query("MATCH (isbn:ISBN {isbn:'" + isbn + "'})<-[:has_GTIN]-(title), (title)-[]->(data)" +
 		"RETURN isbn,labels(isbn),title,data,labels(data)", {}, function(err, result){
-		if (callback != null) callback(err, result);
+		var data = {isbns: {}, author: [] };
+		var label = '';
+
+		// Pull the isbn and title used to call the db, since they get repeated.
+		data.isbns[_stripLabels(result[0]['labels(isbn)'])] = result[0].isbn.isbn;
+		data = _extendNoID(data, result[0].title);
+
+		// Get all data, stripping labels that are just used for indexing.
+		for (var i = 0; i < result.length; i++){
+			label = _stripLabels(result[i]['labels(data)']).toLowerCase();
+			switch (label) {
+				case "print":
+				case "ebook":
+					data.isbns[label] = result[i].data.isbn;
+					break;
+				case "author":
+					data.author.push(_extendNoID({}, result[i].data))
+					break;
+				default:
+					data[label] = _extendNoID({}, result[i].data);
+			}
+		}
+		if (callback != null) callback(err, data);
 	});
 };
+
+/* 
+ * Utility function. Takes all the properties except .id from one object and adds them to the master.
+ */
+var _extendNoID = function(master, propObj) {
+	for (prop in propObj) {
+		if (prop != 'id') master[prop] = propObj[prop];
+	}
+	return master
+}
+/*
+ * Utility function, strips labels that are used as a generic index. Returns last valid label. 
+ */
+var _stripLabels = function(arr){
+	return arr.reduce(function(prev, curr){ 
+		if (curr != 'ISBN') return curr.toLowerCase();
+		return prev.toLowerCase();  
+	});
+}
 
 /*
  * Takes a title object and updates the server. Passes true to the callback for success.
@@ -68,7 +118,7 @@ var putTitle = function(err, title, callback){
 	query += " RETURN true";
 	console.log(query);
 	db.query(query, {}, function(err, result){
-		if (callback != null) callback(err, result.true);
+		if (callback != null) callback(err, true);
 	});
 };
 
@@ -88,4 +138,5 @@ putTitle(
 });
 
 exports.getTitles = getTitles
+exports.getTitle = getTitle
 exports.putTitle = putTitle

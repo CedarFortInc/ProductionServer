@@ -1,4 +1,4 @@
-var catalogControllers = angular.module('catalogControllers', [])
+var catalogControllers = angular.module('catalogControllers', ['ngRoute'])
 
 catalogControllers.controller('mainListing', function($scope, $http){
 	$http.get('/api/books').
@@ -23,4 +23,8 @@ catalogControllers.controller('addBook', function($scope, $http){
 	$scope.remove = function(key, obj){
 		delete obj[key];
 	};
-})
+});
+
+catalogControllers.controller('bookDetail', function($scope, $routeParams, $http){
+	$http.get('/api/books/' + $routeParams.id )
+});
