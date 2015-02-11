@@ -7,6 +7,10 @@ var BookCatalog = angular.module('BookCatalog', ['ngRoute',
 				templateUrl: '/tpl/allBooks.html',
 				controller: 'mainListing' 
 			})
+			.when('/books/add', {
+				templateUrl: '/tpl/addBook.html',
+				controller: 'addBook'
+			})
 			.when('/new', {
 				templateUrl: '/tpl/addBook.html',
 				controller: 'addBook'
@@ -14,6 +18,10 @@ var BookCatalog = angular.module('BookCatalog', ['ngRoute',
 			.when('/books/:id', {
 				templateUrl: '/tpl/bookDetail.html',
 				controller: 'bookDetail'
+			})
+			.when('/books/:id/edit', {
+				templateUrl: '/tpl/bookEdit.html',
+				controller: 'bookEdit'
 			})
 			.otherwise({
 				redirectTo: '/books'

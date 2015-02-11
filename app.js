@@ -10,6 +10,7 @@ var api = require('./routes/api');
 var css = require('./routes/css');
 //var books = require('./routes/books');
 var tpl = require('./routes/tpl');
+var img = require('./routes/img');
 var compression = require('compression');
 
 var app = express();
@@ -21,7 +22,7 @@ app.set('view engine', 'html');
 
 app.use(favicon(__dirname + '/public/favicon.ico'));
 app.use(logger('dev'));
-app.use(bodyParser.json());
+app.use(bodyParser.json({limit: '10mb'}));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(require('stylus').middleware(path.join(__dirname, 'public')));
@@ -32,10 +33,15 @@ app.use('/js', scripts);
 app.use('/api', api);
 app.use('/css', css);
 //app.use('/books', books);
-app.use('/tpl', tpl)
+app.use('/tpl', tpl);
+app.use('/img', img);
 app.use('/', router);
+app.use(function(req, res, next){
+	res.render('index');
+});
 
 // catch 404 and forward to error handler
+/*
 app.use(function(req, res, next) {
     var err = new Error('Not Found');
     err.status = 404;
@@ -65,6 +71,6 @@ app.use(function(err, req, res, next) {
         error: {}
     });
 });
-
+*/
 
 module.exports = app;

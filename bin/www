@@ -5,22 +5,48 @@
  */
 
 var app = require('../app');
+var express = require('express');
 var debug = require('debug')('ProductionServer:server');
 var http = require('http');
-var exec = require('child_process').exec
+var https = require('https');
+var exec = require('child_process').exec;
+var fs = require('fs');
 
 /**
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.PORT || '80');
+var port = normalizePort(process.env.PORT || '443');
 app.set('port', port);
 
 /**
- * Create HTTP server.
+ * Set HTTPS options.
  */
 
-var server = http.createServer(app);
+var httpsOptions = {
+  key: fs.readFileSync('./data/cert/priv.pem'),
+  cert: fs.readFileSync('./data/cert/cert.pem')
+}
+
+/**
+ * Create HTTP dummy with a single route to redirect to HTTPS.
+ */
+
+var httpApp = express();
+httpApp.get('*', function(req, res){
+  res.redirect('https://' + req.get('host') + req.url)
+});
+
+var httpServer = http.createServer(httpApp);
+httpServer.listen('80');
+httpServer.on('error', onError);
+httpServer.on('listening', onListening)
+
+/**
+ * Create HTTPS server.
+ */
+
+var server = https.createServer(httpsOptions ,app);
 
 /**
  * Listen on provided port, on all network interfaces.

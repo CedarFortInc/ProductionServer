@@ -1,7 +1,13 @@
 <div>
+	<div>{{error}}</div>
 	<h1>
 		{{title.title + 
 		(title.article != null ? (", " + title.article) : '') + 
-		(title.subtitle != null ? (' ' + title.subtitle) : '')}}
+		(title.subtitle != null ? (': ' + title.subtitle) : '')}}
 	</h1>
+	<ul>
+		<li ng-repeat="(key, value) in title.isbns">
+			{{key[0].toUpperCase() + key.substr(1)}}: {{value}}
+		</li>
+	</ul>
 </div>

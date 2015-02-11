@@ -1,24 +1,17 @@
-<div class="content">
-        <div class="sidebar">
-                Search: <input ng-model="search">
-        </div>
-        <div class="mainContent">
-                <dl dir-paginate="book in books | filter:search | itemsPerPage: 1">
-                        <dt class="title">Title: </dt>
-                        <dd class="title">
-				<a ng-href="/books/{{oneProp(book.isbns)}}">
-                        	        {{book.article != null ? (book.article + " ") : ''}}
-                        	        {{book.title}}
-                        	        {{book.subtitle != null ? (": " + book.subtitle) : ''}}
-				</a>
-                        </dd>
-                        <br />
-                        <dt ng-repeat-start="(name,value) in book.isbns">{{name}}:</dt>
-                        <dd ng-repeat-end>{{value}}</dd>
-                </dl>
-                <dir-pagination-controls template-url="/js/dirPagination.tpl.html">
-                </dir-pagination-controls>
-        </div>
-        <pre>{{books | json}}</pre>
-</div>
+Search: <input ng-model="search">
+<dl dir-paginate="book in books | filter:search | itemsPerPage: 10">
+	<dt class="title">Title: </dt>
+	<dd class="title">
+		<a ng-href="/books/{{oneProp(book.isbns)}}">
+			{{book.article != null ? (book.article + " ") : ''}}
+			{{book.title}}
+			{{book.subtitle != null ? (": " + book.subtitle) : ''}}
+		</a>
+	</dd><br />
+	<dt ng-repeat-start="(name,value) in book.isbns">{{name}}:</dt>
+	<dd ng-repeat-end>{{value}}</dd>
+</dl>
+<dir-pagination-controls template-url="/js/dirPagination.tpl.html">
+</dir-pagination-controls>
+<pre>{{books | json}}</pre>
 
