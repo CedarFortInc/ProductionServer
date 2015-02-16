@@ -11,7 +11,7 @@ Search: <input ng-model="search">
 	<dt ng-repeat-start="(name,value) in book.isbns">{{name}}:</dt>
 	<dd ng-repeat-end>{{value}}</dd>
 </dl>
-<dir-pagination-controls template-url="/js/dirPagination.tpl.html">
+<dir-pagination-controls template-url="/lib/dirPagination.tpl.html">
 </dir-pagination-controls>
 <pre>{{books | json}}</pre>
 

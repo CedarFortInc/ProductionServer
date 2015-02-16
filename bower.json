@@ -1,0 +1,31 @@
+{
+  "name": "ProductionServer",
+  "version": "0.5.0",
+  "homepage": "https://github.com/CedarFortInc/ProductionServer",
+  "authors": [
+    "Emmett Raymond <star@cedarfort.com>"
+  ],
+  "description": "A server for the Cedar Fort production database.",
+  "main": "app.js",
+  "license": "None. ©2015 Cedar Fort, Inc.",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "public/javascripts",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular": "~1.3.13",
+    "angular-route": "~1.3.13",
+    "angular-isbn": "~0.1.0",
+    "angular-base64": "~2.0.3",
+    "bcryptjs": "~2.1.0",
+    "angular-bootstrap": "~0.12.0"
+  },
+  "resolutions": {
+    "angular": "1.3.13"
+  }
+}

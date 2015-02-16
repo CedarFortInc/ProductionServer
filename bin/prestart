@@ -6,4 +6,4 @@ if [ "$NEOSTAT" = "$TARGET" ]; then
 	data/neo4j-community-2.1.6/bin/neo4j start
 fi
 
-stylus -c ./public/stylesheets
+stylus -c ./public/lib/css
