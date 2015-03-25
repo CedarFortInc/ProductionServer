@@ -5,7 +5,7 @@ db.putUser(null, {username: 'joetest123', password_hash: '123qwe', roles: ['Admi
   console.log("Getting User")
   db.getUser(null, 'joetest123', function(){
     console.log("Authing User")
-    db.authUser(null, 'joetest123', '123qwe', function(){
+    db.postUser(null, 'joetest123', '123qwe', function(){
       console.log("Deleting User")
       db.deleteUser(null, 'joetest123', function(){
         console.log("Getting Empty User")
@@ -17,3 +17,4 @@ db.putUser(null, {username: 'joetest123', password_hash: '123qwe', roles: ['Admi
   })
 });
 
+db.putUser(null, {username: 'test', email: 'test@gmail.com', password_hash: 'test', roles: ['Admin', 'Editor']}, function(){})

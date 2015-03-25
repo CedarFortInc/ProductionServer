@@ -1,50 +1,116 @@
 <div>{{error}}</div>
 <form novalidate class="addBook" ng-submit="submitTitle(title)" name="addBookForm">
-  Title: <input 
-    type="text" 
-    name='titleInput'
-    ng-model="title.title" 
-    ng-minlength=3
-    ng-blur="isTitle = addBookForm.titleInput.$valid"
-  />
-  <span ng-hide="isTitle" class="error">
-    You must add a title with more than 3 letters.
-  </span> <button type="button" ng-click="deleteTitle()">Delete Title</button>
-  <select type="text" ng-model="title.article" />
-    <option selected="selected" value=''>Article</option>
-    <option>The</option>
-    <option>A</option>
-    <option>An</option>
-  </select><br />
-Subtitle: <input type="text" ng-model="title.subtitle"/><br />
-ISBN(s):
-  <select ng-change="addISBN(title.isbns, newType)" ng-model="newType">
-    <option selected="selected">Add New</option>
-    <option>Print</option>
-    <option>Ebook</option>
-    <option>UPC</option>
-  </select> <span ng-hide="anyISBN" class="error">You need at least one ISBN.</span>
-  <ul>
-    <li ng-repeat="(key, value) in title.isbns">
-      {{key[0].toUpperCase() + key.substr(1)}}:
-      <input type="text" 
-        ng-model="title.isbns[key]" 
-        ng-blur="isISBN[key] = isbnValidate(title.isbns[key])"
-      />
-      <button type="button" ng-click="
-        remove(key, title.isbns); 
-        remove(key, isISBN[key])"
-      >
-        Remove {{key}} ISBN
-      </button>
-      <span ng-hide="isISBN[key]">
-        Not a valid ISBN.
-      </span>
-    </li>
-  </ul>
-  <button type="button" ng-click="addAuthor">Add Contributor</button>
-  <ul>
-    
-  </ul>
+  <div>
+    <h2>Title Info<a id='Title'> #</a></h2>
+    Title: <input 
+      type="text" 
+      name='titleInput'
+      id="titleInput"
+      size="30"
+      ng-model="title.title" 
+      ng-minlength=3
+      ng-blur="validateTitle()"
+    />
+    <select type="text" ng-model="title.article" ng-required="true" />
+      <option selected="selected" value=''>Article</option>
+      <option>The</option>
+      <option>A</option>
+      <option>An</option>
+    </select>
+    <div ng-show="errors.title" class="error">
+      You must add a title with more than 3 letters.
+    </div>
+  </div>
+  <div>
+    Subtitle: <input type="text" size="40" ng-model="title.subtitle"/>
+  </div>
+  <div>
+    ISBN(s):
+    <select ng-change="add(newType, '', title.isbns)" ng-model="newType">
+      <option selected="selected" value="">Add New</option>
+      <option>Print</option>
+      <option>Ebook</option>
+      <option>UPC</option>
+    </select> <span class="error">{{errors.isbns.all}}</span>
+    <ul>
+      <li ng-repeat="(key, value) in title.isbns">
+        {{key[0].toUpperCase() + key.substr(1)}}:
+        <input type="text" 
+          ng-model="title.isbns[key]" 
+          ng-blur="validateTitle()"
+        />
+        <button type="button" ng-click="remove(key, title.isbns);">
+          Remove
+        </button>
+        <div class="error">{{errors.isbns[key]}}</div>
+      </li>
+    </ul>
+  </div>
+  <div>
+    <h2>Contributor Info <a id='Contributor'> #</a></h2>
+    <ul> 
+      
+      <li ng-repeat="contributor in title.contributors" class="subSection">
+        First name: <input type="text" ng-model="contributor.first"/><br />
+        Last name: <input type="text" ng-model="contributor.last"/><br />
+        Honorifics: <input type="text" ng-model="contributor.honorifics"/>
+        <br />
+        Place of Origin: <input type="text" ng-model="contributor.origin"><br />
+        <div ng-repeat="contributorSug in suggestions.contributors | filter {first: contributor.first, last: contributor.last}">{{}}</div>
+        Current Address: <input type="text" ng-model="contributor.address" /><br />
+        City: <input type="text" ng-model="contributor.city" /><br />
+        State: <input type="text" ng-model="contributor.state" /><br />
+        Zip Code: <input type="text" ng-model="contributor.zip"><br />
+        Phone #: <input type="tel" ng-model="telephone"><br />
+        Contribution: <select ng-model="contributor.type">
+          <option selected="selected">Author</option>
+          <option>Illustrator</option>
+          <option>Artist</option>
+          <option>Photographer</option>
+          <option>Editor</option>
+          <option>Managing Editor</option>
+          <option>Designer</option>
+          <option>Creator</option>
+          <option>Cover Artist</option>
+          <option>Compiler</option>
+          <option>Preface By</option>
+          <option>Afterword By</option>
+          <option>Foreward By</option>
+          <option>Introduction By</option>
+          <option>Read By</option>
+          <option>Producer</option>
+          <option>Director</option>
+          <option>Actor</option>
+        </select>
+        <br />Author Bio: (basic html &amp; utf-8 allowed)<br />
+        <textarea cols="30" rows="10" ng-model="contributor.bio"></textarea><br />
+        <button type="button" ng-click="remove($index, title.contributors)">Remove {{contributor.first + " " + contributor.last}}{{contributor.honorifics ? ", " + contributor.honorifics : ""}}</button>
+      </li>
+    </ul>
+  <button type="button" ng-click="title.contributors.push({first:'',last:'',type:'Author'})">Add Contributor</button>
+  </div>
+  <div id="pricingInfo">
+    <h2>
+      Pricing and Territories<a id="Pricing and Sales"> #</a>
+    </h2>
+    <ul>
+      <li ng-repeat="price in title.prices" ng-blur="validateTitle()">
+        Amount: <input type="number" min="0" step=".01" ng-model="price.amount"/><br />
+        Three-letter <a target="blank" href="http://en.wikipedia.org/wiki/ISO_4217#Active_codes">currency code</a>: <input type="text" size="3" maxlength="3" ng-model="price.currency"/> <br /> 
+        Two-letter <a target="blank" href="http://en.wikipedia.org/wiki/ISO_3166-1#Current_codes">country code</a>: <input type="text" size="2" maxlength="2" ng-model="price.country"/> <br />(Leave blank for default global price) <br /><br />
+        Regional rights sold: <input ng-blur="validateTitle()" type="checkbox" ng-model="price.rightsSold" />
+        <div ng-show="price.rightsSold">
+          To: <input type="text" ng-model="price.rightsHolder"/>
+        </div>
+        <div class="error">{{errors.prices[$index]}}</div>
+        <button type="button" ng-click="remove($index, title.prices)">Remove Price Region</button>
+      </li>
+    </ul>
+    <button type="button" ng-click="title.prices.push({amount:0,currency:'',country:'',rightsSold:false})">
+      Add Price
+    </button>
+  </div>
   <button type="submit" ng-disabled="sending">Submit</button> <span>{{completed}}</span>
 </form>
+<pre>{{title | json}}</pre>
+<pre>{{errors | json}}</pre>

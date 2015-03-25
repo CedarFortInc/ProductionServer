@@ -1,4 +1,4 @@
-var catalogControllers = angular.module('catalogControllers', ['ngRoute'])
+var catalogControllers = angular.module('catalogControllers', ['ngRoute', 'ngModal', 'ngCookies'])
 
 //Controls the front page book listing.
 catalogControllers.controller('mainListing', function($scope, $http){
@@ -68,13 +68,42 @@ catalogControllers.controller('addBook', function($scope, $http, $window){
   };
 });
 
-catalogControllers.controller('bookDetail', function($scope, $routeParams, $http){
-  $http.get('/api/books/' + $routeParams.id)
-    .success(function(data){$scope.title = data})
-    .error(function(){$scope.error = 'Sorry, that book doesn\'t seem to exist.'});
+catalogControllers.controller('bookDetail', function($scope, $routeParams, $http, TitleModel, $location){
+  TitleModel.getTitle($routeParams.id);
+  $scope.title = TitleModel.title;
+  $scope.errors = TitleModel.errors;
+  $scope.putTitle = TitleModel.putTitle;
+  $scope.validateTitle = TitleModel.validateTitle;
+  $scope.editTitle = function(){$location.path('/books/' + $routeParams.id + '/edit')};
+  $scope.deleteTitle = function(){
+    TitleModel.deleteTitle($routeParams.id, function(){
+      $location.path('/books');
+    });
+  };
+  $scope.newType = 'Add New';
 });
 
-catalogControllers.controller('bookEdit', function($scope, $routeParams, $http){
+catalogControllers.controller('bookEdit', function($scope, $routeParams, TitleModel) {
+  TitleModel.getTitle($routeParams.id);
+  $scope.title = TitleModel.title;
+  $scope.errors = TitleModel.errors;
+  $scope.putTitle = TitleModel.putTitle;
+  $scope.validateTitle = TitleModel.validateTitle;
+  $scope.remove = function(key, obj){
+    if (Array.isArray(obj)) {
+      obj.splice(key, 1);
+    } else {
+      delete obj[key];
+    }
+  }
+  $scope.add = function(key, val, obj){
+    if(key) {
+      obj[key] = val;
+    }
+  }
+})
+
+/*catalogControllers.controller('bookEdit', function($scope, $routeParams, $http){
   $http.get('/api/books/' + $routeParams.id)
     .success(function(data){$scope.title = data})
     .error(function(){$scope.error = "There was trouble retrieving this book for editing."});
@@ -117,10 +146,37 @@ catalogControllers.controller('bookEdit', function($scope, $routeParams, $http){
     $scope.title.contributors.push({})
   }
   
-});
+});*/
 
 /*
- * Controller for the popup login controller.
+ * Controller for the index header.
  */
-catalogControllers.controller('modalLogin', function($scope, $http){
+catalogControllers.controller('headerControl', function($scope, $window, $http, $cookies){
+  $scope.loginVisible = false;
+  $scope.loggedIn = ($cookies.username != null);
+  $scope.openLogin = function(){
+    if ($cookies.username == null) $scope.loginVisible = true; 
+  }
+  $scope.closeLogin = function(){
+    $scope.loginVisible = false
+  }
+  $scope.submitLogin = function(username, password){
+    $http.post('/api/sessions/', JSON.stringify({username: username, password: password}))
+      .success(function(){
+        $scope.loginVisible = false
+        $cookies.username = username;
+        $scope.error = "";
+        $scope.loggedIn = true;
+      })
+      .error(function(){
+        $scope.error = "There was a problem logging in.";
+      });
+  }
+  $scope.signOut = function(){
+    $http.delete('/api/sessions/');
+    delete $cookies.username;
+    delete $cookies.password;
+    $scope.loggedIn = false;
+  }
 });
+

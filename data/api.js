@@ -1,4 +1,6 @@
 var db = require('seraph')('http://localhost:7474');
+var bcrypt = require('bcrypt');
+
 
 /*
  * Takes nothing, returns a list of all titles in json.
@@ -29,11 +31,11 @@ var getTitles = function(err, callback){
  * Takes an isbn and returns all data on the title.
  */
 var getTitle = function(err, isbn, callback){
-  db.query("MATCH (isbn:ISBN {isbn:'" + isbn + "'})<-[:has_GTIN]-(title), (title)-[]->(data)" +
+  db.query("MATCH (isbn:ISBN {isbn:'" + isbn + "'})<-[:has_GTIN]-(title) OPTIONAL MATCH (title)-[]->(data)" +
     "RETURN isbn,labels(isbn),title,data,labels(data)", {}, function(err, result){
     //Catch an empty result and return an error.
     if (result.length === 0) return callback(new Error('404'), '<h1>404<h1> <p>The book you wanted, it\'s not there.');
-    var data = {isbns: {}, author: [] };
+    var data = {isbns: {}, contributors: [], prices: []};
     var label = '';
 
     // Pull the isbn and title used to call the db, since they get repeated.
@@ -48,8 +50,8 @@ var getTitle = function(err, isbn, callback){
         case "ebook":
           data.isbns[label] = result[i].data.isbn;
           break;
-        case "author":
-          data.author.push(_extendNoID({}, result[i].data))
+        case "contributor":
+          data.contributors.push(_extendNoID({}, result[i].data))
           break;
         default:
           data[label] = _extendNoID({}, result[i].data);
@@ -106,9 +108,9 @@ var postTitle = function(err, title, callback){
   }
   
   // Form the query. Always create a new node on a POST. Set attributes only if present.
-  var query = "CREATE (title:TITLE {title: '" + _esc(title.title) + "'})";
-  if (title.article != null) query += " SET title.article = '" + _esc(title.article) + "'";
-  if (title.subtitle != null) query += " SET title.subtitle = '" + _esc(title.subtitle) + "'";
+  var query = "CREATE (title:TITLE {title: {title}})";
+  if (title.article != null) query += " SET title.article = {article}";
+  if (title.subtitle != null) query += " SET title.subtitle = {subtitle}";
   
   // Splice ISBNs onto the title node.
   for (var isbn in title.isbns) {
@@ -116,10 +118,20 @@ var postTitle = function(err, title, callback){
       isbn.toUpperCase() + 
       " {isbn: '" + title.isbns[isbn] + "'})";
   }
+
+  query += ";";
   
-  //Logging queries for debug.
   console.log(query);
-  db.query(query, {}, function(err, result){
+
+  var params = {
+      title: title.title, 
+      article: title.article, 
+      subtitle: title.subtitle
+    };
+
+  //Logging queries for debug.
+  db.query(query, params, function(err, result){
+    console.log(JSON.stringify(err));
     if (callback != null) callback(err, true);
   });
 };
@@ -127,20 +139,84 @@ var postTitle = function(err, title, callback){
 /*
  * Updates a title in the database. Missing data gets deleted.
  */
-var putTitle = function(err, title, callback){
-  var referenceISBN = title.isbns[Object.keys(title.isbns)[0]];
-  getTitle(null, referenceISBN)
-  
+var putTitle = function(err, newTitle, referenceISBN, callback){
+  if (newTitle.title == null) return callback(new Error('No title specified.'));
+  if (Object.keys(newTitle.isbns).length < 1) return callback(new Error('At least one ISBN is required.'));
+  if (Object.keys(newTitle.isbns).every(function(key){ return _ISBNValid(newTitle.isbns[key])})){
+    return callback(new Error('Invalid ISBN found.'));
+  }
+  getTitle(null, referenceISBN, function(oldTitle){
+    var query = "MATCH (:ISBN { isbn: '" + referenceISBN + "'})<-[:has_GTIN]-(title:TITLE)"; 
+    if (newTitle.title != oldTitle.title && newTitle.title) {
+      query += " SET title.title = '" + newTitle.title + "'";
+    }
+  })
 }
+
+var putContributor = function(err, contribUpdate, surname, given, callback){
+
+  var query = "MERGE (contributor:CONTRIBUTOR {surname: {surname}, given: {given}})" + 
+  " WITH contributor as contributor" +
+  " MATCH (title:TITLE)-[:has_GTIN]->(:ISBN {referenceISBN})" +
+  " MERGE (title)-[:contribution_by {type: {type}}]->(contributor)" +
+  " SET contributor.surname = {newSurname}" +
+  " SET contributor.given = {newGiven}"
+  " SET contributor.bio = {bio}" +
+  " SET contributor.honorifics = {honorifics}" +
+  " SET contributor.origin = {origin}" +
+  " SET contributor.address = {address}" +
+  " SET contributor.city = {city}" +
+  " SET contributor.state = {state}" +
+  " SET contributor.zip = {zip}" +
+  ";"; 
+
+  params = {
+    surname: surname,
+    given: given,
+    newSurname: contribUpdate.surname, 
+    newGiven: contribUpdate.last, 
+    referenceISBN: contribUpdate.ISBN, 
+    type: contribUpdate.type, 
+    bio: contribUpdate.bio, 
+    honorifics: contribUpdate.honorifics, 
+    origin: contribUpdate.origin,
+    address: contribUpdate.address,
+    city: contribUpdate.city,
+    state: contribUpdate.state,
+    zip: contribUpdate.zip
+  }
+
+  db.query(query, params, function(err){
+    if (callback != null) callback(err);    
+  });
+}
+
+var getContributors = function(err, callback){
+  var query = "MATCH (contributor:CONTRIBUTOR)<-[r]-() RETURN contributor, r.type;";
+  db.query(query, {}, function(err, result){
+    callback(err, result);
+  });
+}
+
+//Boolean true if valid ISBN.
+var _ISBNValid = function(str){
+  //Placeholder
+  return (str.length == 13)
+};
+
+//Crude sanitizer, replace with parameterized queries.
+var _cypherSafe = function(str){
+  str.replace(/['"]/g, '\\$&')
+};
 
 /*
  * Deletes an entire title and all related data.
  */
 var deleteTitle = function(err, isbn, callback){
   db.query("MATCH (isbn:ISBN { isbn: '" + isbn + "' })," +
-    "(isbn)<-[r:has_GTIN]-(title:TITLE)," +
-    "(title)-[a]->(b)" +
-    " DELETE r,a,isbn,title,b ",
+    " (isbn)<-[r:has_GTIN]-(title:TITLE)" +
+    " OPTIONAL MATCH (title)-[a]->(b)" +
+    " DELETE r,a,isbn,title,b",
     {},
     function(){
       if (callback != null) callback(err, true)
@@ -159,41 +235,92 @@ var _esc = function(str){
  *
  ********************************************************************/
 
+/*
+ * Takes a user json object of the following shape:
+ * 
+ * {
+ *   "username": "foodrick",
+ *   "email": "john@example.com",
+ *   "password": "swordfish"
+ *   "roles": ["admin", "edit", "view_price"]
+ * }
+ *
+ * Roles are optional. A user without any privileges has the
+ * same level of access as an anonymous user. An admin may 
+ * add and modify users. An editor may modify and create
+ * book entries. View price allows users to see the list
+ * price for a book.
+ *
+ */
+
 var putUser = function(err, user, callback){
-  var roles = user.roles.map(function(val){
-    return "MERGE (user)-[:has_role]->(:ROLE { role: '" + val.toLowerCase() + "' })" 
-  })
-  var query = "MERGE (user:USER { username: '" + user.username + "' } )" + 
-    " SET user.password_hash = '" + user.password_hash + "'" +
-    " SET user.email = '" + user.email + "'";
-  query += " " + roles.join(' ');
-  db.query(query + "RETURN user", {}, function(err, data){
-    console.log(data);
-    if (callback != null) callback(err, data);
+  bcrypt.hash(user.password, 10, function(err, password_hash){
+    //Set up an array to merge roles onto the user.
+    var roles = user.roles.map(function(val){
+      return "MERGE (user)-[:has_role]->(:ROLE { role: '" + val.toLowerCase() + "' })" 
+    })
+    //Set up the main body of the query.
+    var query = "MERGE (user:USER { email: '" + user.email + "' } )" + 
+      " SET user.password_hash = '" + password_hash + "'" +
+      " SET user.username = '" + user.username + "'";
+    //Splice role merges onto the body of the query.
+    query += " " + roles.join(' ');
+    //Execute and return the results.
+    db.query(query + "RETURN user", {}, function(err, data){
+      console.log("PUT user: " + JSON.stringify(data));
+      if (callback != null) callback(err, data);
+    });
   });
 };
 
 var getUser = function(err, username, callback){
-  db.query("MATCH (user:USER { username: '" + username + "' }), (user)-[]->(role:ROLE) RETURN user, role", {}, 
+  db.query(
+    "MATCH (user:USER { username: '" + username + "' }), (user)-[]->(role:ROLE) RETURN user.email, user.username, role.role;", 
+    {},
     function(err, data){
-      console.log(data);
+      console.log("GET user: " + data);
       if (callback != null) callback(err, data);
     });
 };
 
-var postUser = putUser;
+/**
+ * Returns a full list of users.
+ * @param  {error}   err       Error passthrough
+ * @param  {Function} callback CPS hook
+ * @return {JSON}              JSON array of user objects w/o passwords.
+ */
+var getUsers = function(err, callback){
+  db.query(
+    "MATCH (user:USER) RETURN user;", 
+    {},
+    function(err, data){
+      data = data.map(function(val, i, arr){
+        delete(val.password_hash);
+        return val;
+      });
+      console.log("GET user: " + JSON.stringify(data));
+      if (callback != null) callback(err, data);
+    });
+};
 
-var deleteUser = function(err, username, callback){
-  db.query("MATCH (user:USER { username: '" + username + "'}), (user)-[r]-() DELETE r,user", {}, function(err, data){
-    console.log(data);
+/**
+ * Deletes a user and their role associations.
+ * @param  {error}   err        Error passthrough
+ * @param  {string}   email     Identifying username
+ * @param  {Function} callback  CPS hook
+ * @return {JSON}               Returns an empty JSON object
+ */
+var deleteUser = function(err, email, callback){
+  db.query("MATCH (user:USER { email: '" + email + "'}), (user)-[r]-() DELETE r,user", {}, function(err, data){
+    console.log(data); 
     if (callback != null) callback(err, data);
   });
 };
 
-var authUser = function(err, username, hash, callback){
-  getUser(err, username, function(err, data){
+var postUser = function(err, email, hash, callback){
+  getUser(err, email, function(err, data){
     var AuthRoles = ['none'];
-    if (data[1].user.password_hash === hash){
+    if (data.length > 0 && data[1].user.password_hash === hash){
       AuthRoles = data.map(function(val){return val.role.role});
       console.log(AuthRoles);
     }
@@ -201,7 +328,37 @@ var authUser = function(err, username, hash, callback){
   });
 };
 
+/********************************************************************
+ *
+ *  SESSIONS SECTION
+ * 
+ ********************************************************************/
 
+var authenticateSession = function(err, username, password, callback){
+  if (err != null) return callback(err);
+
+  //Sorry for the repetition. Cypher. What can I say?
+  db.query("MATCH (user:USER {username: {username}})-[]-(roles:ROLE) RETURN user.password_hash, roles.role;", {username: username}, function(err, result){
+    console.log("Authenticating: " + JSON.stringify(result));
+    bcrypt.compare(password, result['user.password_hash'], function(err, isCorrect){
+      if (isCorrect && result['roles.role'] != null){
+        return callback(err, result['roles.role']);
+      } else {
+        return callback(err, ["none"]);
+      }
+    });
+  });  
+}
+
+var postSession = function(err, body, callback){
+  authenticateSession(err, body.username, body.password, function(err, roles){
+    return callback(err, roles);    
+  });
+};
+
+var deleteSession = function(err, body, callback){
+
+}
 
 
 
@@ -210,9 +367,13 @@ exports.getTitles = getTitles;
 exports.getTitle = getTitle;
 exports.deleteTitle = deleteTitle;
 exports.postTitle = postTitle;
+//Export Contriutor functions
+exports.putContributor = putContributor;
 //Export User functions
 exports.putUser = putUser;
 exports.getUser = getUser;
+exports.getUsers = getUsers;
 exports.postUser = postUser;
 exports.deleteUser = deleteUser;
-exports.authUser = authUser;
+//Export Session functions
+exports.postSession = postSession;

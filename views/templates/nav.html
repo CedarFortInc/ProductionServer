@@ -1,4 +1,8 @@
 <ul>
 <li><a href="/">All Books</a></li>
 <li><a href="/books/add">Add Book</a></li>
+<li>
+  <a href="#" ng-hide="loggedIn" ng-click="openLogin()">Login</a>
+  <a href="#" ng-show="loggedIn" ng-click="signOut()">Sign Out</a>
+</li>
 </ul>

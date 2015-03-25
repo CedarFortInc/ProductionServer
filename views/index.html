@@ -3,19 +3,39 @@
   <base href="/">      
   <script src="/lib/bcryptjs/dist/bcrypt.min.js"></script>
   <script src="/lib/angular/angular.js"></script>
-  <script src="/lib/angular-route/angular-route.js"></script>
-  <script src="/lib/controllers.js"></script>
-  <script src="/lib/dirPagination.js"></script>
   <script src="/lib/app.js"></script>
-  <link href="/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script href="/lib/angular-bootstrap/ui-bootstrap.min.js"></script>
+  <script src="/lib/angular-route/angular-route.js"></script>
+  <script src="/lib/angular-cookies/angular-cookies.min.js"></script>
+  <script src="/lib/ngModal/dist/ng-modal.js"></script>
+  <script src="/lib/controllers.js"></script>
+  <script src="/lib/services.js"></script>
+  <script src="/lib/dirPagination.js"></script>
+  <link href="/lib/ngModal/dist/ng-modal.css">
   <link href='https://fonts.googleapis.com/css?family=PT+Serif+Caption:400,400italic' rel='stylesheet' type='text/css'>
+  <link href="/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="/lib/css/style.css" rel="stylesheet">
 </head>
 <body ng-app="BookCatalog">
-<div class="header">
+<div class="header" ng-controller="headerControl">
   <a href="http://cedarfortbooks.com/"><img src="/img/cflogo.png"></a>
   <div class="nav" ng-include="'/tpl/nav.html'"></div>
+  <modal-dialog show='loginVisible'>
+    <h2>Login</h2>
+    <div class="modal-body">
+      Username: <br /> <input type="text" ng-model="username"></input><br />
+      Password: <br />  <input type="password" ng-model="password"></input><br />
+      <p class="error">{{error}}</p>
+    </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" ng-click="submitLogin(username, password)">
+          Sign In
+        </button>
+        <button class="btn btn-warning" ng-click="closeLogin()">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </modal-dialog>
 </div>
 <section>
   <div class="content" ng-view></div>

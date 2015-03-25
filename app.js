@@ -1,11 +1,13 @@
 var express = require('express');
+var fs = require('fs');
 var path = require('path');
 var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
+var sessions = require('client-sessions');
 var bodyParser = require('body-parser');
 var router = require('./routes/index');
-var api = require('./routes/api');
+var api = require('./routes/api-route');
 var lib = require('./routes/lib');
 //var books = require('./routes/books');
 var tpl = require('./routes/tpl');
@@ -14,13 +16,26 @@ var compression = require('compression');
 
 var app = express();
 
-// view engine setup
+// Views engine setup.
 app.set('views', path.join(__dirname, 'views'));
 app.engine('html', require('ejs').renderFile);
 app.set('view engine', 'html');
 
+// Get the application key.
+var secretKey = fs.readFileSync('./secretKey', {encoding: 'utf8'});
+
+// REST session engine setup.
+var sessionOptions = {
+    cookieName: 'loginSession',
+    secret: secretKey,
+    duration: 4*60*60*1000,
+    activeDuration: 1*60*60*1000,
+    secure: true
+};
+
 app.use(favicon(__dirname + '/public/favicon.ico'));
 app.use(logger('dev'));
+app.use(sessions(sessionOptions));
 app.use(bodyParser.json({limit: '10mb'}));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());

@@ -13,10 +13,10 @@ var exec = require('child_process').exec;
 var fs = require('fs');
 
 /**
- * Get port from environment and store in Express.
+ * Get port from environment and store in Express. 80 for http, 443 for https.
  */
 
-var port = normalizePort(process.env.PORT || '443');
+var port = normalizePort(process.env.PORT || '80');
 app.set('port', port);
 
 /**
@@ -28,10 +28,13 @@ var httpsOptions = {
   cert: fs.readFileSync('./data/cert/cert.pem')
 }
 
+//Testing only. Http server.
+var server = http.createServer(app);
+
 /**
  * Create HTTP dummy with a single route to redirect to HTTPS.
  */
-
+/*
 var httpApp = express();
 httpApp.get('*', function(req, res){
   res.redirect('https://' + req.get('host') + req.url)
@@ -41,13 +44,13 @@ var httpServer = http.createServer(httpApp);
 httpServer.listen('80');
 httpServer.on('error', onError);
 httpServer.on('listening', onListening)
-
+*/
 /**
  * Create HTTPS server.
  */
-
+/*
 var server = https.createServer(httpsOptions ,app);
-
+*/
 /**
  * Listen on provided port, on all network interfaces.
  */
