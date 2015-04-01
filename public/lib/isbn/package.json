@@ -1,0 +1,44 @@
+{
+  "author": {
+    "name": "Hetappi",
+    "email": "hetappi.pm@gmail.com",
+    "url": "http://twitter.com/#!/hetappi"
+  },
+  "name": "isbn",
+  "description": "ISBN parsing, validation, and formatting utilities",
+  "version": "0.2.0",
+  "homepage": "http://isbnjs.googlecode.com",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/coolaj86/isbnjs.git"
+  },
+  "main": "isbn.js",
+  "engines": {
+    "node": ">= 0.0.1"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "bugs": {
+    "url": "https://github.com/coolaj86/isbnjs/issues"
+  },
+  "_id": "isbn@0.2.0",
+  "dist": {
+    "shasum": "e5172e3b3e8c2cac8a2c9d7e7e840681c96436fc",
+    "tarball": "http://registry.npmjs.org/isbn/-/isbn-0.2.0.tgz"
+  },
+  "_from": "isbn@",
+  "_npmVersion": "1.3.24",
+  "_npmUser": {
+    "name": "coolaj86",
+    "email": "coolaj86@gmail.com"
+  },
+  "maintainers": [
+    {
+      "name": "coolaj86",
+      "email": "coolaj86@gmail.com"
+    }
+  ],
+  "directories": {},
+  "_shasum": "e5172e3b3e8c2cac8a2c9d7e7e840681c96436fc",
+  "_resolved": "https://registry.npmjs.org/isbn/-/isbn-0.2.0.tgz"
+}

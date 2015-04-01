@@ -27,9 +27,20 @@ catalogControllers.factory("TitleModel", function($http, $q){
       });
   }
 
+  //Post a new title + isbns. 
   model.postTitle = function(){
-    var clean = model.validateTitle()['clean'];
-    alert('clean');
+    model.validateTitle();
+    if (model.errors.clean) {
+      $http.post('/api/books/', JSON.stringify(model.title))
+    }
+  }
+
+  //Put a new title + all data.
+  model.putTitle = function(){
+    model.validateTitle();
+    if (model.errors.clean) {
+      $http.put('/api/books/' + model.primaryISBN, JSON.stringify(model.title))
+    }
   }
 
   model.validateTitle = function(strictValidate){
@@ -61,7 +72,8 @@ catalogControllers.factory("TitleModel", function($http, $q){
         if (!contributor.first && !contributor.last) errarr.push("at least one name");
         if (!contributor.type) errarr.push("a role");
         if (!contributor.bio) errarr.push("a bio");
-        return "Contributor needs: " + errarr.join(", ") + ".";
+	if (errarr.length > 0) return "Contributor needs: " + errarr.join(", ") + ".";
+        return null;
       })
     }
     if (model.title.prices.length) {

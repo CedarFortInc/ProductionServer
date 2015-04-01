@@ -51,18 +51,18 @@
     <ul> 
       
       <li ng-repeat="contributor in title.contributors" class="subSection">
-        First name: <input type="text" ng-model="contributor.first"/><br />
-        Last name: <input type="text" ng-model="contributor.last"/><br />
+        First name: <input type="text" ng-model="contributor.given"/><br />
+        Last name: <input type="text" ng-model="contributor.surname"/><br />
         Honorifics: <input type="text" ng-model="contributor.honorifics"/>
         <br />
         Place of Origin: <input type="text" ng-model="contributor.origin"><br />
-        <div ng-repeat="contributorSug in suggestions.contributors | filter {first: contributor.first, last: contributor.last}">{{}}</div>
+        <div ng-repeat="contributorSug in suggestions.contributors | filter : {first: contributor.first, last: contributor.last}">{{}}</div>
         Current Address: <input type="text" ng-model="contributor.address" /><br />
         City: <input type="text" ng-model="contributor.city" /><br />
         State: <input type="text" ng-model="contributor.state" /><br />
         Zip Code: <input type="text" ng-model="contributor.zip"><br />
         Phone #: <input type="tel" ng-model="telephone"><br />
-        Contribution: <select ng-model="contributor.type">
+        Contribution: <select ng-model="contributor.contType">
           <option selected="selected">Author</option>
           <option>Illustrator</option>
           <option>Artist</option>
@@ -110,7 +110,7 @@
       Add Price
     </button>
   </div>
-  <button type="submit" ng-disabled="sending">Submit</button> <span>{{completed}}</span>
+  <button type="submit" ng-click="putTitle()" ng-disabled="sending">Submit</button> <span>{{completed}}</span>
 </form>
 <pre>{{title | json}}</pre>
 <pre>{{errors | json}}</pre>

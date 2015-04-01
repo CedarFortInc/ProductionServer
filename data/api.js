@@ -38,6 +38,7 @@ var getTitle = function(err, isbn, callback){
     var data = {isbns: {}, contributors: [], prices: []};
     var label = '';
 
+    console.log(result);
     // Pull the isbn and title used to call the db, since they get repeated.
     data.isbns[_stripLabels(result[0]['labels(isbn)'])] = result[0].isbn.isbn;
     data = _extendNoID(data, result[0].title);
@@ -74,6 +75,8 @@ var _extendNoID = function(master, propObj) {
  * Utility function, strips labels that are used as a generic index. Returns last valid label. 
  */
 var _stripLabels = function(arr){
+  if (!Array.isArray(arr)) return [arr.toLowerCase()];
+  if (arr.length === 0) return [];
   return arr.reduce(function(prev, curr){ 
     if (curr != 'ISBN') return curr.toLowerCase();
     return prev.toLowerCase();  
@@ -142,41 +145,52 @@ var postTitle = function(err, title, callback){
 var putTitle = function(err, newTitle, referenceISBN, callback){
   if (newTitle.title == null) return callback(new Error('No title specified.'));
   if (Object.keys(newTitle.isbns).length < 1) return callback(new Error('At least one ISBN is required.'));
-  if (Object.keys(newTitle.isbns).every(function(key){ return _ISBNValid(newTitle.isbns[key])})){
+  if (!Object.keys(newTitle.isbns).every(function(key){ return _ISBNValid(newTitle.isbns[key])})){
     return callback(new Error('Invalid ISBN found.'));
   }
+  console.log('Valid Title');
   getTitle(null, referenceISBN, function(oldTitle){
+    if (oldTitle == null) return null;
     var query = "MATCH (:ISBN { isbn: '" + referenceISBN + "'})<-[:has_GTIN]-(title:TITLE)"; 
     if (newTitle.title != oldTitle.title && newTitle.title) {
       query += " SET title.title = '" + newTitle.title + "'";
     }
+  
   })
+  if  (Array.isArray(newTitle.contributors)) {
+    newTitle.contributors.forEach(function(contributor){
+      contributor.ISBN = referenceISBN;
+      putContributor(err, contributor, contributor.surname, contributor.given, function(err){
+        if (err != null) console.log(err);
+      });
+    });
+  }
 }
 
 var putContributor = function(err, contribUpdate, surname, given, callback){
-
+  console.log("Putting contributor: " + given + " " + surname );
+  console.log(JSON.stringify(contribUpdate));
   var query = "MERGE (contributor:CONTRIBUTOR {surname: {surname}, given: {given}})" + 
-  " WITH contributor as contributor" +
-  " MATCH (title:TITLE)-[:has_GTIN]->(:ISBN {referenceISBN})" +
-  " MERGE (title)-[:contribution_by {type: {type}}]->(contributor)" +
-  " SET contributor.surname = {newSurname}" +
-  " SET contributor.given = {newGiven}"
-  " SET contributor.bio = {bio}" +
-  " SET contributor.honorifics = {honorifics}" +
-  " SET contributor.origin = {origin}" +
-  " SET contributor.address = {address}" +
-  " SET contributor.city = {city}" +
-  " SET contributor.state = {state}" +
-  " SET contributor.zip = {zip}" +
+  " WITH contributor as cont" +
+  " MATCH (title:TITLE)-[:has_GTIN]->(:ISBN {isbn: {referenceISBN}})" +
+  " MERGE (title)-[:contribution_by {type: '" + contribUpdate.contType + "'}]->(contributor)" +
+  " SET cont.surname = {newSurname}" +
+  ", cont.given = {newGiven}"
+  ", cont.bio = {bio}" +
+  ", cont.honorifics = {honorifics}" +
+  ", cont.origin = {origin}" +
+  ", cont.address = {address}" +
+  ", cont.city = {city}" +
+  ", cont.state = {state}" +
+  ", cont.zip = {zip}" +
   ";"; 
 
   params = {
     surname: surname,
     given: given,
     newSurname: contribUpdate.surname, 
-    newGiven: contribUpdate.last, 
+    newGiven: contribUpdate.given, 
     referenceISBN: contribUpdate.ISBN, 
-    type: contribUpdate.type, 
     bio: contribUpdate.bio, 
     honorifics: contribUpdate.honorifics, 
     origin: contribUpdate.origin,
@@ -365,6 +379,7 @@ var deleteSession = function(err, body, callback){
 //Export Title functions
 exports.getTitles = getTitles;
 exports.getTitle = getTitle;
+exports.putTitle = putTitle;
 exports.deleteTitle = deleteTitle;
 exports.postTitle = postTitle;
 //Export Contriutor functions

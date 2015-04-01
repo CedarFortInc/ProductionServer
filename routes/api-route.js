@@ -20,7 +20,18 @@ router.post('/books', function(req, res){
     }
   });
   console.log(req.body);
-})
+});
+
+router.put('/books/:id', function(req, res){
+  db.putTitle(null, req.body, req.params.id, function(err, result){
+    if (err != null) {
+      res.status(400).send('FAILURE');
+      console.log("There was an error: " + err);
+    } else {
+      res.status(201).send('OK');
+    }
+  });
+});
 
 router.get('/books/:id', function(req, res){
   db.getTitle(null, req.params.id, function(err, result){
