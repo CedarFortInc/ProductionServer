@@ -1,11 +1,21 @@
 catalogControllers.factory("TitleModel", function($http, $q){
 
   var model = {};
-  model.title = {};
-  model.primaryISBN = '';
-  model.errors = {};
 
-  model.getTitle = function(isbn) {
+  model.clear = function(){
+    model.title = {};
+    model.errors = {};
+    model.primaryISBN = '';
+    model.title.gtins = [];
+    model.title.title = {};
+    model.title.marketing = {};
+    model.title.contributors = [];
+    model.title.format = {language: "eng"};
+  }
+
+  model.clear();
+
+  model.getTitle = function (isbn) {
     $http.get('/api/books/' + isbn)
       .success(function(data){
         //var data = result;
@@ -29,9 +39,10 @@ catalogControllers.factory("TitleModel", function($http, $q){
 
   //Post a new title + isbns. 
   model.postTitle = function(){
-    model.validateTitle();
-    if (model.errors.clean) {
-      $http.post('/api/books/', JSON.stringify(model.title))
+    //model.validateTitle();
+    if (true) {
+      console.log('POST: Title');
+      $http.post('/api/books', angular.toJson(model.title))
     }
   }
 
@@ -39,34 +50,63 @@ catalogControllers.factory("TitleModel", function($http, $q){
   model.putTitle = function(){
     model.validateTitle();
     if (model.errors.clean) {
-      $http.put('/api/books/' + model.primaryISBN, JSON.stringify(model.title))
+      $http.put('/api/books/' + model.primaryISBN, angular.toJson(model.title));
     }
   }
+
+  model.add = {
+    gtin: function(value) {
+      var isUnique = model.title.gtins.every(function (item) {
+        return item.type != value;
+      });
+      if (isUnique) {
+        model.title.gtins.push({type: value, number: ""});
+      };
+    },
+    contributor: function() {
+      model.title.contributors.push({contType:'Author'});
+    },
+    price: function(){
+      model.title.prices.push({
+        amount: 0, 
+        currency: "",
+        country: '', 
+        rightsSold: false
+      });
+    }
+  }
+
 
   model.validateTitle = function(strictValidate){
     console.log('Validating Title');
     for (prop in model.errors) delete model.errors[prop];
     model.errors.clean = true;
-    model.errors.isbns = {};
+    model.errors.gtins = [];
     var dirty = function(){model.errors.clean = false};
     if (!model.title.title || model.title.title.length < 3) {
       model.errors.title = "You need a title longer than 3";
       dirty();
     } else {
-      delete(model.errors.title);
+      delete model.errors.title;
     }
-    if (!Object.keys(model.title.isbns).length) {
-      alert("No ISBNs");
-      model.errors.isbns.all = "You need at least one valid ISBN.";
+
+    //GTINS
+    if (!model.title.gtins.length) {
+      model.errors.gtins = "You need at least one valid ISBN.";
       dirty();
+    } else {
+    var GTINAccumulator = {};
+      model.title.gtins.forEach(function(gtin, index) {
+        if (gtin.number.length != 13) {
+          model.errors.gtins[index] = "This is not a valid ISBN13.";
+          dirty();
+        }
+        GTINAccumulator[gtin.type] == null ? GTINAccumulator[gtin.type] = true : model.errors.gtins[index] += " Duplicate GTIN type.";
+      });
     }
-    for (key in model.title.isbns) {
-      if (model.title.isbns[key].length != 13) {
-        model.errors.isbns[key] = "This is not a valid ISBN13.";
-        dirty();
-      }
-    }
-    if (model.title.contributors.length) {
+
+    //Contributors
+    if (model.title.contributors != null && model.title.contributors.length) {
       model.errors.contributors = model.title.contributors.map(function(contributor){
         var errarr = [];
         if (!contributor.first && !contributor.last) errarr.push("at least one name");
@@ -76,10 +116,11 @@ catalogControllers.factory("TitleModel", function($http, $q){
         return null;
       })
     }
-    if (model.title.prices.length) {
+
+    //Prices and Regions
+    if (model.title.prices != null && model.title.prices.length) {
       var pricesDupeArray = []
       model.errors.prices = model.title.prices.map(function(price){
-        console.log(price);
         var errarr = [];
         pricesDupeArray.indexOf(price.country) == -1 ? pricesDupeArray.push(price.country) : errarr.push("a unique country code");
         if (price.currency.length != 3) errarr.push("a three-letter currency code");
@@ -95,4 +136,39 @@ catalogControllers.factory("TitleModel", function($http, $q){
 
   return model
 
-})
+});
+
+//File uploader with callback.
+catalogControllers.factory("UploadFiles", function($http, $q){
+
+  uploader = {};
+  uploader.reader = new FileReader();
+  uploader.xhr = new XMLHttpRequest();
+  console.log("building uploader");
+
+  /*upload.init = function(){
+    console.log('initialized uploader');
+    document.getElementById('sendFile').addEventListener("click", uploader.send('coverImage', "THISBOOK", 'coverImage', alert('IT SENT!!')))
+  }*/
+
+  uploader.send = function(inputId, sku, type, callback){
+    console.log("Sending File");
+    var file = document.getElementById(inputId).files[0];
+    var data = new FormData();
+    data.append(file.name, file);
+    uploader.xhr.upload.addEventListener("load", callback);
+    uploader.xhr.open("PUT", "http://54.149.54.152/api/files/" + sku + "/" + "type");
+    uploader.xhr.send(data);
+  }
+
+  return uploader
+
+});
+
+
+
+
+
+
+
+

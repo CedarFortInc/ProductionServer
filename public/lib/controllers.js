@@ -16,61 +16,50 @@ catalogControllers.controller('mainListing', function($scope, $http){
 });
 
 //Controls the add-book page.
-catalogControllers.controller('addBook', function($scope, $http, $window){
-  //Represents the title object that will get sent to the server.
-  $scope.title = {title: '', isbns: {}};
+catalogControllers.controller('addBook', function($scope, TitleModel){
+  TitleModel.clear();
+  $scope.title = TitleModel.title;
+  $scope.errors = TitleModel.errors;
+  $scope.postTitle = TitleModel.postTitle;
+  $scope.validateTitle = TitleModel.validateTitle;
+  $scope.remove = function(key, obj){
+    if (Array.isArray(obj)) {
+      obj.splice(key, 1);
+    } else {
+      delete obj[key];
+    }
+  }
+  $scope.add = TitleModel.add;
   //Initilizes the ISBN type select button.
   $scope.newType = 'Add New';
-  //Adds an ISBN of the chosen type.
-  $scope.addISBN = function(isbns, type){
-    type = type.toLowerCase();
-    //Declare that there is at least one ISBN for validation.
-    $scope.anyISBN = true;
-    //Warn against adding duplicates.
-    $scope.isISBN[type] = true;
-    if (isbns[type] == null && type !== 'add new') isbns[type] = '';
-    //Reset the select button.
-    $scope.newType = 'Add New';
-  };
-  //Delete function for arbitrary object keys.
+});
+
+
+
+catalogControllers.controller('bookEdit', function($scope, $routeParams, TitleModel, UploadFiles) {
+  TitleModel.getTitle($routeParams.id);
+  $scope.title = TitleModel.title;
+  $scope.errors = TitleModel.errors;
+  $scope.putTitle = TitleModel.putTitle;
+  //UploadFiles.init();
+  $scope.sendFile = UploadFiles.send;
+  $scope.validateTitle = TitleModel.validateTitle;
   $scope.remove = function(key, obj){
-    delete obj[key];
-  };
-  //Valid if there is a title.
-  $scope.isTitle = true;
-  //Valid if there's one or more ISBN.
-  $scope.anyISBN = false;
-  //Collection to prevent duplication.
-  $scope.isISBN = {};
-  //Placeholder validation for ISBNs
-  $scope.isbnValidate = function(row){
-    if (row.length != 13) return false;
-    return true;
-  };
-  //Final validation and submission to the server via POST.
-  $scope.submitTitle = function(title){
-    if (title.title == '' || !$scope.isTitle) return $scope.isTitle = false;
-    if (Object.keys(title.isbns).length === 0) return $scope.anyISBN = false;
-    for (key in title.isbns) {
-      if (title.isbns[key].length != 13) return $scope.isISBN[key] = false;
-    };
-    $scope.sending = true;
-    $scope.completed = 'Sending, please be patient.';
-    $http.post('/api/books', JSON.stringify(title))
-      .success(function(){
-        $window.location.href = '/books/' + title.isbns[Object.keys(title.isbns)[0]];
-        $scope.sending = false;
-      })
-      .error(function(){
-        $scope.sending = false;
-        $scope.completed = 'There were problems sending the information.';
-      });
-  };
+    if (Array.isArray(obj)) {
+      obj.splice(key, 1);
+    } else {
+      delete obj[key];
+    }
+  }
+  $scope.add = TitleModel.add;
 });
 
 catalogControllers.controller('bookDetail', function($scope, $routeParams, $http, TitleModel, $location){
   TitleModel.getTitle($routeParams.id);
   $scope.title = TitleModel.title;
+  $scope.pretty = function (string) {
+    return string.replace(/([A-Z])/g, ' $1').replace(/^./, function(str){ return str.toUpperCase();});
+  }
   $scope.errors = TitleModel.errors;
   $scope.putTitle = TitleModel.putTitle;
   $scope.validateTitle = TitleModel.validateTitle;
@@ -82,26 +71,6 @@ catalogControllers.controller('bookDetail', function($scope, $routeParams, $http
   };
   $scope.newType = 'Add New';
 });
-
-catalogControllers.controller('bookEdit', function($scope, $routeParams, TitleModel) {
-  TitleModel.getTitle($routeParams.id);
-  $scope.title = TitleModel.title;
-  $scope.errors = TitleModel.errors;
-  $scope.putTitle = TitleModel.putTitle;
-  $scope.validateTitle = TitleModel.validateTitle;
-  $scope.remove = function(key, obj){
-    if (Array.isArray(obj)) {
-      obj.splice(key, 1);
-    } else {
-      delete obj[key];
-    }
-  }
-  $scope.add = function(key, val, obj){
-    if(key) {
-      obj[key] = val;
-    }
-  }
-})
 
 /*catalogControllers.controller('bookEdit', function($scope, $routeParams, $http){
   $http.get('/api/books/' + $routeParams.id)

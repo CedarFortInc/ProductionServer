@@ -1,6 +1,15 @@
 pre {
   clear: both;
 }
+.break {
+  white-space: pre-wrap;
+}
+li {
+  list-style: none;
+  border-left: #770719 2px solid;
+  padding-left: 0.5em;
+  margin-top: 1em;
+}
 .error {
   color: #f00;
 }
@@ -97,6 +106,9 @@ input,
 button {
   margin: 0.5em;
 }
+input[type="checkbox"] {
+  margin-right: 0.5em;
+}
 .preview h2 {
   font-size: 2rem;
 }
@@ -106,13 +118,10 @@ button {
 .preview ul {
   list-style: none;
 }
-form li {
+form li,
+.toRight {
   display: inline-block;
   text-align: right;
-  list-style: none;
-  border-left: #770719 2px solid;
-  padding-left: 0.5em;
-  margin-top: 1em;
 }
 #pricingInfo .error {
   max-width: 20em;

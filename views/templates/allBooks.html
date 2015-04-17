@@ -2,14 +2,14 @@ Search: <input ng-model="search">
 <dl dir-paginate="book in books | filter:search | itemsPerPage: 10">
 	<dt class="title">Title: </dt>
 	<dd class="title">
-		<a ng-href="/books/{{oneProp(book.isbns)}}">
+		<a ng-href="/books/{{book.gtins[0].number}}">
 			{{book.article != null ? (book.article + " ") : ''}}
 			{{book.title}}
 			{{book.subtitle != null ? (": " + book.subtitle) : ''}}
 		</a>
 	</dd><br />
-	<dt ng-repeat-start="(name,value) in book.isbns">{{name}}:</dt>
-	<dd ng-repeat-end>{{value}}</dd>
+	<dt ng-repeat-start="gtin in book.gtins">{{gtin.type}}:</dt>
+	<dd ng-repeat-end>{{gtin.number}}</dd>
 </dl>
 <dir-pagination-controls template-url="/lib/dirPagination.tpl.html">
 </dir-pagination-controls>

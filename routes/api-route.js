@@ -1,12 +1,13 @@
 var express = require('express');
 var router = express.Router();
 var db = require(process.cwd() + '/data/api.js');
+var multer = require('multer');
 /* GET books. */
 
 
 router.get('/books', function(req, res){
   db.getTitles(null, function(err, result){
-    res.send(result);
+    res.status(200).send(result);
   });
 });
 
@@ -113,5 +114,18 @@ router.delete('/sessions', function(req, res){
     req.loginSession.reset();
     res.status(202).send('Deleting Session.');
 });
+
+router.put('/files/:sku/:type', [
+  multer({
+    dest: './public/uploads/',
+    rename: function (fieldname, filename, req, res) {
+      console.log ("Uploaded", filename);
+      return req.params.sku + '_' + req.params.type;
+    }
+  }), 
+  function(req, res){
+  }
+]);
+
 
 module.exports = router;

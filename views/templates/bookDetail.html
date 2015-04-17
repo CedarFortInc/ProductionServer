@@ -1,16 +1,46 @@
 <div>
-	<div>{{error}}</div>
-	<h1>
-		{{title.title + 
-		(title.article != null ? (", " + title.article) : '') + 
-		(title.subtitle != null ? (': ' + title.subtitle) : '')}}
-	</h1>
-	<ul>
-		<li ng-repeat="(key, value) in title.isbns">
-			{{key[0].toUpperCase() + key.substr(1)}}: {{value}}
-		</li>
-	</ul>
+  <div>{{error}}</div>
+  <h1>
+    {{title.title.title + 
+    (title.title.article != null ? (", " + title.title.article) : '') + 
+    (title.title.subtitle != null ? (': ' + title.title.subtitle) : '')}}
+  </h1>
+  <ul>
+    <li ng-repeat="value in title.gtins">
+      {{value.type[0].toUpperCase() + value.type.substr(1)}}: {{value.number}}
+    </li>
+  </ul>
+  <ul>
+    <li ng-repeat="cont in title.contributors">
+      {{cont.contType}}: {{cont.given}} {{cont.surname}} {{cont.honorifics != null ? ", " + cont.honorifics : "" }}<br />
+      Bio: {{cont.bio}}
+    </li>
+  </ul>
+
+  Format: 
+  <ul>
+    <li ng-repeat="(key, value) in title.format">
+      {{pretty(key)}}: {{value}}
+    </li>
+  </ul>
+
+  Marketing: 
+  <ul>
+    <li class="break" ng-repeat="(key, value) in title.marketing">
+      {{ key != 'LDS' ? pretty(key) : key }}: {{value}}
+    </li>
+  </ul>
+
+  Prices and Regions: 
+  <ul>
+    <li ng-repeat="price in title.prices">
+      Amount: {{price.amount}} {{price.currency}}<br />
+      Territory: {{price.country != null ? price.country : "World"}}<br />
+      {{price.rightsSold ? "Rights sold to: " + price.rightsHolder: ""}}
+    </li>
+  </ul>
 </div>
+
 <button ng-click="validateTitle()">Validate</button>
 <button ng-click="deleteTitle()">Delete</button>
 <button ng-click="editTitle()">Edit</button>

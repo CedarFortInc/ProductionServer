@@ -1,57 +1,51 @@
 <div>
-	<form novalidate class="addBook" ng-submit="submitTitle(title)" name="addBookForm">
-		Title: <input 
-				type="text" 
-				name='titleInput'
-				ng-model="title.title" 
-				ng-minlength=3
-				ng-blur="isTitle = addBookForm.titleInput.$valid"
-			/> 
-			<span ng-hide="isTitle" class="error">
-				You must add a title with more than 3 letters.
-			</span> <select type="text" ng-model="title.article" />
-				<option selected="selected" value=''>Article</option>
-				<option>The</option>
-				<option>A</option>
-				<option>An</option>
-			</select><br />
-		Subtitle: <input type="text" ng-model="title.subtitle"/><br />
-		ISBN(s): 
-			<select ng-change="addISBN(title.isbns, newType)" ng-model="newType">
-				<option selected="selected">Add New</option>
-				<option>Print</option>
-				<option>Ebook</option>
-				<option>UPC</option>
-			</select> <span ng-hide="anyISBN" class="error">You need at least one ISBN.</span>
-		<ul>
-				<li ng-repeat="(key, value) in title.isbns">
-					{{key[0].toUpperCase() + key.substr(1)}}: 
-					<input type="text" 
-						ng-model="title.isbns[key]" 
-						ng-blur="isISBN[key] = isbnValidate(title.isbns[key])"
-					/>
-					<button ng-click="
-						remove(key, title.isbns); 
-						remove(key, isISBN[key])"
-					>
-						Remove {{key}} ISBN
-					</button>
-					<span ng-hide="isISBN[key]">
-						Not a valid ISBN.
-					</span>
-				</li>
-		</ul>
-		<button type="submit" ng-disabled="sending">Submit</button> <span>{{completed}}</span>
-	</form>
-	<div class="preview addBook">
-		<h2>Preview:</h2>
-		<h3>{{title.title}}{{title.article ? ", " + title.article : ''}}{{title.subtitle ? ": " + title.subtitle : ''}}
-		</h3>
-		<ul>
-			<li ng-repeat="(key, value) in title.isbns">
-				{{key[0].toUpperCase() + key.substr(1)}}: {{value}}
-			</li>
-		</ul>
-	</div>
-	<!-- <pre>{{title | json}}<br />{{newType | json}}</pre> -->
+  <form novalidate class="addBook" ng-submit="submitTitle(title)" name="addBookForm">
+    Title: <input 
+        type="text" 
+        name='titleInput'
+        ng-model="title.title.title" 
+        ng-minlength=3
+        ng-blur="validateTitle()"
+      /> 
+      <span ng-model="error.title" class="error"></span> 
+      <select type="text" ng-model="title.title.article" />
+        <option selected="selected" value=''>Article</option>
+        <option>The</option>
+        <option>A</option>
+        <option>An</option>
+      </select><br />
+    Subtitle: <input type="text" ng-model="title.title.subtitle"/><br />
+    GTIN(s): 
+      <select ng-change="add.gtin(newType);newType = 'Add New'" ng-model="newType">
+        <option selected="selected">Add New</option>
+        <option>Print</option>
+        <option>Ebook</option>
+        <option>UPC</option>
+      </select>
+    <ul>
+        <li ng-repeat="gtin in title.gtins">
+          {{gtin.type[0].toUpperCase() + gtin.type.substr(1)}}: 
+          <input type="text" 
+            ng-model="gtin.number" 
+            ng-blur="validateTitle()"
+          />
+          <button ng-click="remove($index, title.gtins)">
+            Remove {{gtin.type}}
+          </button>
+        </li>
+    </ul>
+    SKU (leave blank for default): <input type="text" ng-model="title.title.sku" /><br />
+    <button type="submit" ng-click="postTitle()" ng-disabled="sending">Submit</button> <span>{{completed}}</span>
+  </form>
+  <div class="preview addBook">
+    <h2>Preview:</h2>
+    <h3>{{title.title}}{{title.article ? ", " + title.article : ''}}{{title.subtitle ? ": " + title.subtitle : ''}}
+    </h3>
+    <ul>
+      <li ng-repeat="gtin in title.gtins">
+        {{gtin.type[0].toUpperCase() + gtin.type.substr(1)}}: {{gtin.number}}
+      </li>
+    </ul>
+  </div>
+  <pre>{{title | json}}<br />{{newType | json}}<br />{{errors | json}}</pre>
 </div>

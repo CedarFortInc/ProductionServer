@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 <head>
   <base href="/">      
@@ -26,14 +27,13 @@
       Password: <br />  <input type="password" ng-model="password"></input><br />
       <p class="error">{{error}}</p>
     </div>
-      <div class="modal-footer">
-        <button class="btn btn-primary" ng-click="submitLogin(username, password)">
-          Sign In
-        </button>
-        <button class="btn btn-warning" ng-click="closeLogin()">
-          Cancel
-        </button>
-      </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" ng-click="submitLogin(username, password)">
+        Sign In
+      </button>
+      <button class="btn btn-warning" ng-click="closeLogin()">
+        Cancel
+      </button>
     </div>
   </modal-dialog>
 </div>

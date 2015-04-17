@@ -7,11 +7,11 @@
       name='titleInput'
       id="titleInput"
       size="30"
-      ng-model="title.title" 
+      ng-model="title.title.title" 
       ng-minlength=3
       ng-blur="validateTitle()"
     />
-    <select type="text" ng-model="title.article" ng-required="true" />
+    <select type="text" ng-model="title.title.article" ng-required="true" />
       <option selected="selected" value=''>Article</option>
       <option>The</option>
       <option>A</option>
@@ -22,46 +22,68 @@
     </div>
   </div>
   <div>
-    Subtitle: <input type="text" size="40" ng-model="title.subtitle"/>
+    Subtitle: <input type="text" size="40" ng-model="title.title.subtitle"/>
   </div>
   <div>
-    ISBN(s):
-    <select ng-change="add(newType, '', title.isbns)" ng-model="newType">
+    Imprint: 
+      <select ng-model="title.imprint">
+        <option>Bonneville Books</option>
+        <option>CFI Books</option>
+        <option>Council Press</option>
+        <option>Front Table Books</option>
+        <option>Hobble Creek Press</option>
+        <option>Horizon Publishers</option>
+        <option>Plain Sight Publishing</option>
+        <option>Pioneer Plus</option>
+        <option>Sweetwater Books</option>
+      </select><br />
+      SKU: <input type="text" ng-model="title.title.sku">
+  </div>
+
+
+  <div>
+    GTIN(s):
+    <select ng-change="add.gtin(newType); newType = '';" ng-model="newType">
       <option selected="selected" value="">Add New</option>
       <option>Print</option>
       <option>Ebook</option>
       <option>UPC</option>
     </select> <span class="error">{{errors.isbns.all}}</span>
     <ul>
-      <li ng-repeat="(key, value) in title.isbns">
-        {{key[0].toUpperCase() + key.substr(1)}}:
+      <li ng-repeat="gtin in title.gtins">
+        {{gtin.type[0].toUpperCase() + gtin.type.substr(1)}}:
         <input type="text" 
-          ng-model="title.isbns[key]" 
+          ng-model="gtin.number" 
           ng-blur="validateTitle()"
         />
-        <button type="button" ng-click="remove(key, title.isbns);">
+        <button type="button" ng-click="remove($index, title.gtins);">
           Remove
         </button>
         <div class="error">{{errors.isbns[key]}}</div>
       </li>
     </ul>
   </div>
+
+
   <div>
     <h2>Contributor Info <a id='Contributor'> #</a></h2>
     <ul> 
       
       <li ng-repeat="contributor in title.contributors" class="subSection">
-        First name: <input type="text" ng-model="contributor.given"/><br />
-        Last name: <input type="text" ng-model="contributor.surname"/><br />
+        Given name(s): <input type="text" ng-model="contributor.given"/><br />
+        Surname: <input type="text" ng-model="contributor.surname"/><br />
         Honorifics: <input type="text" ng-model="contributor.honorifics"/>
         <br />
         Place of Origin: <input type="text" ng-model="contributor.origin"><br />
+        Birthday: <input type="text" ng-model="contributor.birthday"><br />
         <div ng-repeat="contributorSug in suggestions.contributors | filter : {first: contributor.first, last: contributor.last}">{{}}</div>
         Current Address: <input type="text" ng-model="contributor.address" /><br />
         City: <input type="text" ng-model="contributor.city" /><br />
         State: <input type="text" ng-model="contributor.state" /><br />
         Zip Code: <input type="text" ng-model="contributor.zip"><br />
-        Phone #: <input type="tel" ng-model="telephone"><br />
+        Phone #: <input type="tel" ng-model="contributor.phone"><br />
+        Website URL: <input type="text" ng-model="contributor.website"><br />
+        
         Contribution: <select ng-model="contributor.contType">
           <option selected="selected">Author</option>
           <option>Illustrator</option>
@@ -82,13 +104,19 @@
           <option>Director</option>
           <option>Actor</option>
         </select>
-        <br />Author Bio: (basic html &amp; utf-8 allowed)<br />
+        <br />Author Bio: (basic html &amp; utf-8)<br />
         <textarea cols="30" rows="10" ng-model="contributor.bio"></textarea><br />
-        <button type="button" ng-click="remove($index, title.contributors)">Remove {{contributor.first + " " + contributor.last}}{{contributor.honorifics ? ", " + contributor.honorifics : ""}}</button>
+        <br />Author Marketing Plan: (basic html &amp; utf-8)<br />
+        <textarea cols="30" rows="10" ng-model="contributor.marketing"></textarea><br />
+        <button type="button" ng-click="remove($index, title.contributors)">
+          Remove {{contributor.given + " " + contributor.surname}}{{contributor.honorifics ? ", " + contributor.honorifics : ""}}
+        </button>
       </li>
     </ul>
-  <button type="button" ng-click="title.contributors.push({first:'',last:'',type:'Author'})">Add Contributor</button>
+  <button type="button" ng-click="add.contributor()">Add Contributor</button>
   </div>
+
+
   <div id="pricingInfo">
     <h2>
       Pricing and Territories<a id="Pricing and Sales"> #</a>
@@ -96,9 +124,12 @@
     <ul>
       <li ng-repeat="price in title.prices" ng-blur="validateTitle()">
         Amount: <input type="number" min="0" step=".01" ng-model="price.amount"/><br />
-        Three-letter <a target="blank" href="http://en.wikipedia.org/wiki/ISO_4217#Active_codes">currency code</a>: <input type="text" size="3" maxlength="3" ng-model="price.currency"/> <br /> 
-        Two-letter <a target="blank" href="http://en.wikipedia.org/wiki/ISO_3166-1#Current_codes">country code</a>: <input type="text" size="2" maxlength="2" ng-model="price.country"/> <br />(Leave blank for default global price) <br /><br />
-        Regional rights sold: <input ng-blur="validateTitle()" type="checkbox" ng-model="price.rightsSold" />
+        Three Letter <a target="blank" href="http://en.wikipedia.org/wiki/ISO_4217#Active_codes">Currency Code</a>: 
+          <input type="text" size="3" maxlength="3" ng-model="price.currency"/> <br /> 
+        Two Letter <a target="blank" href="http://en.wikipedia.org/wiki/ISO_3166-1#Current_codes">Country Code</a>: 
+          <input type="text" size="2" maxlength="2" ng-model="price.country"/> <br />(Leave blank for default global price) <br /><br />
+        Regional Rights Sold: 
+          <input ng-blur="validateTitle()" type="checkbox" ng-model="price.rightsSold" />
         <div ng-show="price.rightsSold">
           To: <input type="text" ng-model="price.rightsHolder"/>
         </div>
@@ -106,10 +137,104 @@
         <button type="button" ng-click="remove($index, title.prices)">Remove Price Region</button>
       </li>
     </ul>
-    <button type="button" ng-click="title.prices.push({amount:0,currency:'',country:'',rightsSold:false})">
+    <button type="button" ng-click="add.price()">
       Add Price
     </button>
   </div>
+
+
+  <div>
+    <h2>
+      Marketing Information<a id="Marketing Information"> #</a>
+    </h2>
+    <ul><li>
+      Audience: 
+      <select ng-model="title.marketing.audience">
+        <option ng-selected="true">General/Trade</option>
+        <option>Children/Juvenile</option>
+        <option>Young Adult</option>
+        <option>School Grades</option>
+        <option>College</option>
+        <option>Professional/Scholarly</option>
+        <option>ELT/ESL</option>
+        <option>Adult Education</option>
+      </select><br />
+      LDS Market: <input type="checkbox" ng-model="title.marketing.LDS"> <br />
+      Age From: <input type="number" min="0" max="150" step="1" ng-model="title.marketing.ageFrom"/><br />
+      Age To: <input type="number" min="0" max="150" step="1" ng-model="title.marketing.ageTo"/><br />
+      <br />Back Cover: (basic html &amp; utf-8)<br />
+      <textarea cols="30" rows="10" ng-model="title.marketing.backCover"></textarea><br />
+      <br />Long Ad Copy: (basic html &amp; utf-8)<br />
+      <textarea cols="30" rows="10" ng-model="title.marketing.longAdCopy"></textarea><br />
+      <br />Short Ad Copy: (basic html &amp; utf-8)<br />
+      <textarea cols="30" rows="10" ng-model="title.marketing.shortAdCopy"></textarea><br />
+      <br />Sample Paragraph: (basic html &amp; utf-8)<br />
+      <textarea cols="30" rows="10" ng-model="title.marketing.sampleParagraph"></textarea><br />
+      <br />Short Quote/Recipe List: (basic html &amp; utf-8)<br />
+      <textarea cols="30" rows="10" ng-model="title.marketing.shortQuote"></textarea><br />
+      <br />Sample TOC: (basic html &amp; utf-8)<br />
+      <textarea cols="30" rows="10" ng-model="title.marketing.sampleTOC"></textarea><br />
+      <br />Amazon Description: (basic html &amp; utf-8)<br />
+      <textarea cols="30" rows="10" ng-model="title.marketing.amazonDescription"></textarea><br />
+    </li></ul>
+  </div>
+
+
+  <div>
+    <h2>
+      Format and Shipping<a id="Format and Shipping"> #</a>
+    </h2>
+    <div class="toRight">
+      Binding: <input type="text" ng-model="title.format.binding" /><br />
+      Page Count: <input type="number" min="0" step="1" ng-model="title.format.pageCount" /><br />
+      Image Count: <input type="number" min="0" step="1" ng-model="title.format.imageCount" /><br />
+      Recipe Count: <input type="number" min="0" step="1" ng-model="title.format.recipeCount" /><br />
+      Weight (lbs): <input type="number" min="0" step=".01" ng-model="title.format.weight" /><br />
+      Height (in): <input type="number" min="0" step=".01" ng-model="title.format.height" /><br />
+      Width (in): <input type="number" min="0" step=".01" ng-model="title.format.width" /><br />
+      Full Color: <input type="checkbox" ng-model="title.format.fullColor" /><br />
+      Barcode: <input type="checkbox" ng-model="title.format.barcode" /><br />
+      Mobi: <input type="checkbox" ng-model="title.format.mobi" /><br />
+      Epub: <input type="checkbox" ng-model="title.format.epub" /><br />
+      Three Letter <a href="http://en.wikipedia.org/wiki/List_of_ISO_639-2_codes">Language Code</a>: 
+        <input type="text" maxlength="3" size="3" ng-model="title.format.language" /><br />
+      Other Formats: <input type="text" ng-model="title.format.otherFormats" /><br />
+      Format Notes: <br />
+      <textarea cols="30" rows="10" ng-model="title.format.formatNotes"></textarea><br />
+    </div>
+  </div>
+
+
+  <div>
+    <h2>
+      Publication Data<a id="Publication Data"> #</a>
+      
+    </h2>
+    <div class="toRight">
+      Edition #: <input type="number" min="0" step="1" ng-model="title.publication.edition" /><br />
+      Publisher: <input type="text" ng-model="title.publication.publisher" /><br />
+      CIP submitted (MM/DD/YYYY): <input type="text" maxlength="10" size="10" ng-model="title.publication.CIPSubmitted" /><br />
+      Text Press Deadline (MM/DD/YYYY): <input type="text" maxlength="10" size="10" ng-model="title.publication.textPressDeadline" /><br />
+      Cover Press Deadline (MM/DD/YYYY): <input type="text" maxlength="10" size="10" ng-model="title.publication.coverPressDeadline" /><br />
+      Publication Date (MM/DD/YYYY): <input type="text" maxlength="10" size="10" ng-model="title.publication.publicationDate" /><br />
+      Metadata Completed Date: {{title.publication.metadataCompleted ? title.publication.metadataCompleted : "Not Complete"}}<br />
+    </div>
+  </div>
+
+
+  <div>
+    <h2>
+      Uploads<a id="Uploads"> #</a>
+    </h2>
+    <div class="toRight">
+      <input type="file" id="coverImage" />
+      <button type="button" ng-click="sendFile('coverImage', title.title.sku, 'coverImage', alert('IT SENT!!'))">
+        Upload
+      </button>
+    </div>
+  </div>
+
+
   <button type="submit" ng-click="putTitle()" ng-disabled="sending">Submit</button> <span>{{completed}}</span>
 </form>
 <pre>{{title | json}}</pre>

@@ -1,5 +1,12 @@
 pre
   clear both
+.break
+  white-space pre-wrap
+li
+  list-style none
+  border-left #770719 2px solid
+  padding-left 0.5em
+  margin-top 1em
 
 border-radius()
   -webkit-border-radius arguments
@@ -72,6 +79,7 @@ section
   border: 1px solid #ddd
   margin-left: -1px
 
+
 form.addBook
   float left
   padding .5em
@@ -79,19 +87,17 @@ form.addBook
   max-width 100%
 select, input, button
   margin .5em
+input[type="checkbox"]
+  margin-right .5em
 .preview h2
   font-size: 2rem
 .preview h3
   font-size: 1.5rem
 .preview ul
   list-style none
-form li
+form li, .toRight
   display inline-block
   text-align right
-  list-style none
-  border-left #770719 2px solid
-  padding-left 0.5em
-  margin-top 1em
 #pricingInfo .error
   max-width: 20em; 
 
